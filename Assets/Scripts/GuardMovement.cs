@@ -1,67 +1,94 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace prisonescape
+namespace MyCode
 {
     public class GuardMovement : MonoBehaviour
     {
-        NavMeshAgent agent;
-
         public Transform[] patrolPositions;
         private int currentPositionIndex = 0;
 
-
+        private NavMeshAgent agent;
         private Vector3 targetPosition;
-
         private bool isMoving = false;
 
+        public float detectionRange = 10f; 
+        private GameObject player;
+        public GameObject questionMark;
+        public GameObject panelPopUp;
+        //public TextMeshProUGUI text_PopUp;
+
+        private Animator animator;
         private void Awake()
         {
             transform.position = patrolPositions[0].position;
             PatrolMovement();
         }
 
-        // Start is called before the first frame update
         void Start()
         {
             agent = GetComponent<NavMeshAgent>();
+            animator = GetComponent<Animator>();
+            questionMark.SetActive(false);
+            player = GameObject.FindGameObjectWithTag("Player");
+            panelPopUp.SetActive(false);
         }
 
-        // Update is called once per frame
         void Update()
-        {
-            if (isMoving)
+        {           
+            if(player.tag != "Player")
             {
-                // Move the character
                 agent.SetDestination(targetPosition);
-
-                // Check if the character has reached the target position
+                questionMark.SetActive(false);
                 if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
                 {
-                    isMoving = false;
-                    PatrolMovement(); // Set a new random target position
+                    PatrolMovement();
+                }
+                Debug.Log("tag da doi");
+            }
+
+            if (Vector3.Distance(transform.position, player.transform.position) <= detectionRange)
+            {
+                StartCoroutine(SuspiciousTime());
+            }
+            else if (!isMoving)
+            {
+                agent.SetDestination(targetPosition);
+                questionMark.SetActive(false);
+                if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
+                {
+                    PatrolMovement();
                 }
             }
         }
-
+        IEnumerator SuspiciousTime()
+        {
+            animator.SetBool("IsStanding", true);
+            agent.SetDestination(gameObject.transform.position);
+            yield return new WaitForSeconds(1);
+            animator.SetBool("IsStanding", false);
+            agent.SetDestination(player.transform.position);
+            isMoving = true;
+            questionMark.SetActive(true);
+        }
         void PatrolMovement()
         {
-            if (patrolPositions.Length - 1 > currentPositionIndex)
-            {
-                currentPositionIndex++;
-            }
-            else
-            {
-                currentPositionIndex = 0;
-            }
+            currentPositionIndex = (currentPositionIndex + 1) % patrolPositions.Length;
 
-            // Set the target position with the same Y and Z coordinates
             targetPosition = patrolPositions[currentPositionIndex].position;
+        }
 
-            // Character starts moving towards the new target
-            isMoving = true;
+        private void OnTriggerEnter(Collider other)
+        {
+            if(other.gameObject.tag == "Player")
+            {
+                panelPopUp.SetActive(true);
+                //text_PopUp.text = "You lose";
+                player.SetActive(false);
+                Debug.Log("touch player");
+            }
         }
     }
 }

@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Assets Dzung/Scenes/Prison Escape.unity
-    guid: d9db29908bfaede49bdbe46d7cb75a8e
+    path: Assets/Assets Dzung/Scenes/JailBreak_1.unity
+    guid: 1ab07e646e8296f4da6b054a283d4f03
   m_configObjects: {}
